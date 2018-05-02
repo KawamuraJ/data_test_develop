@@ -1,0 +1,4 @@
+requests
+xml.etree.ElementTreecsv
+csv
+operator
