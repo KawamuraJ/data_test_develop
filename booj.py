@@ -2,7 +2,9 @@
 """
 Spyder Editor
 
-This is a temporary script file.
+Document: booj.py
+Date: 5/1/2018
+
 """
 
 import requests
@@ -21,6 +23,7 @@ out_file_sort = "Mls_sort.csv"
 try:
     # Get xml feed
     response = requests.get(url)
+   
     # Write feed to file
     with open(in_feed_file, 'wb') as file_feed:
         file_feed.write(response.content)
@@ -30,16 +33,23 @@ except Exception as e:
     raise
     
 finally:
-    file_feed.close()
+    try:
+        file_feed.close()
+    
+    except:
+        pass
 
 # parse xml file
 tree = ET.parse(in_feed_file)  
+
 # Find root
 root = tree.getroot()
 
 try:
+    # Open file to write to
     write_out_file = open(out_file, "w")
     
+    #Iterate through Listing nodes
     for x in root.findall('Listing'):
         appliance_list = []
         appliance_list_string = None
@@ -54,19 +64,21 @@ try:
         # Filter greater/equal 2016 and check for "and" in description 
         if YearListed >= 2016 and Description.find('and'):
             
+            # Assign variables
             MlsId = x[1][3].text + ','
             MlsName = x[1][4].text + ','
             StreetAddress = x[0][0].text + ','
             Price = x[1][1].text + ','
             Bedrooms = x[3][3].text + ','
             Bathrooms = str(x[3][4].text).replace('None','0') + ','
-            Description_CSV = str(Description[0:200]).replace(',','-') + ','  
+            Description_CSV = str(Description[0:200]).replace(',','-') + '\n'
             
             # Iterate through appliance nodes
             for y in x.findall('RichDetails/Appliances/Appliance'):
                 if y.text != '':
                     appliance_list.append( y.text )
                 
+            # Made these | joined so they reside in obe field in csv file
             appliance_list_string = "|".join(appliance_list) + ','
             
             # Iterate through room nodes
@@ -74,16 +86,22 @@ try:
                 if v.text != '':
                     rooms_list.append( v.text )
                 
-            rooms_list_string = "|".join(rooms_list) + '\n'
+            # Made these | joined so they reside in obe field in csv file
+            rooms_list_string = "|".join(rooms_list) + ','
             
-            write_out_file.write(MlsId + MlsName + DateListed + StreetAddress + Price + Bedrooms + Bathrooms + Description_CSV + appliance_list_string + rooms_list_string )
+            write_out_file.write(MlsId + MlsName + DateListed + StreetAddress + Price + Bedrooms + Bathrooms + appliance_list_string + rooms_list_string + Description_CSV)
+
 except Exception as e:
     print('Failure while iterating through xml file:\n' + str(e))
     raise
     
 finally:
-    # Close out file
-    write_out_file.close()
+    try:
+        # Close out file
+        write_out_file.close()
+    
+    except:
+        pass
 
 try:
     # sort file
@@ -94,11 +112,10 @@ try:
     # open new soirted file
     write_out_sort_file = open(out_file_sort, "w")
     #write header
-    write_out_sort_file.write('MlsId,MlsName,DateListed,StreetAddress,Price,Bedrooms,Bathrooms,Description,Appliances,Rooms\n')
+    write_out_sort_file.write('MlsId,MlsName,DateListed,StreetAddress,Price,Bedrooms,Bathrooms,Appliances,Rooms,Description\n')
     
     #Write sorted date to final product
     for sort_rec in sort:
-        #write_out_sort_file.write(sort_rec[0] + sort_rec[1],sort_rec[2],sort_rec[3],sort_rec[4],sort_rec[5],sort_rec[6],sort_rec[7],sort_rec[8],sort_rec[9])
         write_out_sort_file.write(sort_rec[0] + ',' + sort_rec[1] + ',' + sort_rec[2] + ',' + sort_rec[3] + ',' + sort_rec[4] + ',' + sort_rec[5] + ',' + sort_rec[6] + ',' + sort_rec[7] + ',' + sort_rec[8] + ',' + sort_rec[9] + '\n')
 
 except Exception as e:
@@ -106,6 +123,13 @@ except Exception as e:
     raise
 
 finally:
-    write_out_sort_file.close()
-    sort_csv.close()
+    try:
+        write_out_sort_file.close()
+    except:
+        pass
+    
+    try:
+        sort_csv.close()
+    except:
+        pass
 
